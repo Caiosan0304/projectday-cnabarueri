@@ -1,181 +1,396 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Controle de Passaportes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap" rel="stylesheet" />
   <style>
-    :root{--primary:#0077ff;--bg:#f7f9fc;--card:#fff;--border:#e0e6ed}
+    :root{
+      --primary:#2563eb;
+      --primary-light:#3b82f6;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --border:#d4d4d8;
+      --danger:#ef4444;
+      --warn:#facc15;
+      --text:#1e293b;
+    }
     *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
-    body{background:var(--bg);color:#222;padding:1rem;max-width:540px;margin:auto}
-    h1{font-size:1.8rem;text-align:center;color:var(--primary);margin-bottom:.5rem}
-    h2{font-size:1.2rem;text-align:center;margin-bottom:.8rem}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;box-shadow:0 4px 10px rgba(0,0,0,.05)}
+    body{
+      background:var(--bg);color:var(--text);
+      max-width:880px;margin:auto;padding:2rem 1.5rem;line-height:1.45;
+    }
+    @media(max-width:600px){body{padding:1rem;max-width:560px}}
+
+    h1,h2{font-family:"Inter",sans-serif;font-weight:700}
+    h1{font-size:2rem;margin-bottom:.5rem;text-align:center;color:var(--primary)}
+    h2{font-size:1.25rem;margin-bottom:1rem;text-align:center}
+
+    #recepcaoSection{display:grid;gap:1rem}
+    @media(min-width:768px){#recepcaoSection{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
+
+    .card{
+      background:var(--card);border:1px solid var(--border);border-radius:16px;
+      padding:1.25rem;box-shadow:0 6px 18px rgba(0,0,0,.05);transition:box-shadow .25s;
+    }
+    .card:hover{box-shadow:0 8px 22px rgba(0,0,0,.06)}
+
     label{display:block;margin-top:.8rem;font-weight:600}
-    input,select{width:100%;padding:.6rem .7rem;border:1px solid var(--border);border-radius:8px;margin-top:.3rem;font-size:1rem}
-    button{display:block;width:100%;margin-top:1rem;padding:.8rem;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:1rem;cursor:pointer;transition:filter .2s}
-    button:hover{filter:brightness(1.08)}
+    input,select{
+      width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:10px;
+      font-size:1rem;background:#fff;transition:border .2s,outline .2s
+    }
+    input:focus,select:focus{outline:2px solid var(--primary-light)}
+
+    ul.sug{list-style:none;margin:0;padding:0;border:1px solid var(--border);border-top:none;max-height:160px;overflow-y:auto;background:#fff;border-radius:0 0 10px 10px}
+    ul.sug li{padding:.5rem .7rem;cursor:pointer}
+    ul.sug li:hover{background:#f0f0f0}
+
+    button{
+      width:100%;padding:.9rem 1rem;margin-top:1rem;border:none;border-radius:10px;
+      background:var(--primary);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;
+      transition:filter .2s,transform .2s
+    }
+    button:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    button.ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+    button:focus-visible{outline:2px dashed var(--primary-light);outline-offset:2px}
+
     table{width:100%;border-collapse:collapse;font-size:.9rem}
-    th,td{border:1px solid var(--border);padding:.4rem;text-align:center}
+    th,td{border:1px solid var(--border);padding:.5rem;text-align:center}
     th{background:var(--primary);color:#fff}
-    #toast{position:fixed;top:1rem;right:1rem;min-width:220px;padding:.8rem;border-radius:8px;background:#333;color:#fff;opacity:0;pointer-events:none;transition:opacity .35s;z-index:9999}
+
+    #toast{position:fixed;top:1rem;right:1rem;min-width:230px;padding:.9rem 1.2rem;border-radius:12px;background:#1e293b;color:#fff;font-weight:500;opacity:0;pointer-events:none;transform:translateY(-20px);transition:opacity .35s,transform .35s;z-index:9999}
+    #toast.show{opacity:1;transform:translateY(0)}
+
     .hidden{display:none}
+    .rest-0{background:var(--danger);color:#fff;padding:.2rem .5rem;border-radius:6px}
+    .rest-1{background:var(--warn);color:#000;padding:.2rem .5rem;border-radius:6px}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    #log tbody tr{animation:fadeIn .4s ease backwards}
+
+    @media(prefers-color-scheme:dark){
+      :root{--bg:#0f172a;--card:#1e293b;--border:#334155;--primary:#3b82f6;--text:#f1f5f9}
+      button.ghost{border-color:var(--text);color:var(--text)}
+    }
   </style>
 </head>
 <body>
-  <h1>Controle de Passaportes</h1>
-  <h2>Total de drinks distribuídos: <span id="drinkTotal">0</span></h2>
+  <h1 id="pageTitle">Controle de Passaportes</h1>
+  <h2 id="drinkGlobal" class="hidden">Total de drinks distribuídos: <span id="drinkTotal">0</span></h2>
 
-  <!-- 🔍 Busca -->
-  <div class="card" id="buscaCard">
-    <label>Procurar participante</label>
-    <input id="search" placeholder="Digite o nome completo…" autocomplete="off">
-    <div id="searchResult" style="margin-top:.6rem;font-weight:600"></div>
-    <button id="btnNovo" class="hidden">Registrar novo participante</button>
+  <!-- ============ RECEPÇÃO ============ -->
+  <div id="recepcaoSection">
+    <div class="card">
+      <label>Procurar participante</label>
+      <input id="search" placeholder="Digite o nome completo…" autocomplete="off" />
+      <ul id="searchSug" class="sug hidden"></ul>
+      <div id="searchResult" style="margin-top:.6rem;font-weight:600"></div>
+      <button id="btnNovo" class="hidden ghost">Registrar novo participante</button>
+    </div>
+
+    <div class="card hidden" id="formCard">
+      <form id="form">
+        <label>Nome completo
+          <input id="nome" required autocomplete="off" />
+        </label>
+        <label>Categoria
+          <select id="categoria" required>
+            <option value="Apresentador">Apresentador</option>
+            <option value="Visitante">Visitante</option>
+            <option value="Convidado">Convidado</option>
+          </select>
+        </label>
+        <!-- Novo campo: Nível -->
+        <label>Nível
+          <select id="nivel">
+            <option value="">Selecione…</option>
+            <option value="Infantil">Infantil</option>
+            <option value="Adulto">Adulto</option>
+            <option value="Espanhol">Espanhol</option>
+          </select>
+        </label>
+        <!-- Novo campo: Turma -->
+        <label>Turma
+          <select id="turma">
+            <option value="">Selecione o nível acima</option>
+          </select>
+        </label>
+        <div style="margin-top:.5rem;font-size:.9rem">Drinks base: <span id="drinksBase">2</span></div>
+        <button type="submit">Salvar participante</button>
+      </form>
+    </div>
+
+    <div class="card hidden" id="acoesCard">
+      <div id="infoSelecionado" style="font-weight:600"></div>
+      <button id="btnAddToken">+ Token (+2 drinks)</button>
+      <div id="resumoTokens" style="margin-top:.5rem;font-size:.9rem"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:.5rem">Últimos registros</h3>
+      <table id="log">
+        <thead>
+          <tr><th>Nome</th><th>C</th><th>Base</th><th>Tokens</th><th>Total</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- 📝 Formulário -->
-  <div class="card hidden" id="formCard">
-    <form id="form">
-      <label>Nome completo
-        <input id="nome" required autocomplete="off">
-      </label>
-      <label>Turma (opcional p/ convidados)
-        <input id="turma" autocomplete="off">
-      </label>
-      <label>Categoria
-        <select id="categoria">
-          <option value="Apresentador">Apresentador</option>
-          <option value="Visitante">Visitante</option>
-          <option value="Convidado">Convidado</option>
-        </select>
-      </label>
-      <div style="margin-top:.5rem;font-size:.9rem">Drinks permitidos: <span id="drinksInfo">2</span></div>
-      <button type="submit">Salvar participante</button>
-    </form>
-  </div>
-
-  <!-- ⚙️ Ações sobre participante existente -->
-  <div class="card hidden" id="acoesCard">
-    <div id="infoSelecionado" style="font-weight:600"></div>
-    <button id="btnToken">Adicionar token 2 drinks (R$15)</button>
-    <button id="btnCracha">Imprimir crachá</button>
-  </div>
-
-  <!-- 📊 Últimos registros -->
-  <div class="card">
-    <h3 style="margin-bottom:.5rem">Últimos registros</h3>
-    <table id="log"><thead><tr><th>Nome</th><th>C</th><th>🍹</th><th>Token</th></tr></thead><tbody></tbody></table>
-    <button id="btnCsv" style="margin-top:1rem;background:#13b813">Exportar CSV</button>
+  <!-- ============ BAR ============ -->
+  <div id="barSection" class="hidden">
+    <div class="card">
+      <label>Buscar participante</label>
+      <input id="barSearch" placeholder="Nome…" autocomplete="off" />
+      <ul id="barSug" class="sug hidden"></ul>
+      <div id="barInfo" style="margin-top:.6rem;font-weight:600"></div>
+      <button id="btnServe" class="hidden">🍹 Servir -1 drink</button>
+      <button id="btnUndo"  class="hidden ghost">↩ Desfazer</button>
+    </div>
   </div>
 
   <div id="toast"></div>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
   <script>
-  /* -------- 1. CONFIG FIREBASE -------- */
+  /* ---------- Firebase ---------- */
   const firebaseConfig={
     apiKey:"AIzaSyAMcHp33IW5SC0dWlCUyPq9wpQacARGp0w",
     authDomain:"project-day-cna.firebaseapp.com",
     projectId:"project-day-cna",
     storageBucket:"project-day-cna.appspot.com",
     messagingSenderId:"760089907322",
-    appId:"1:760089907322:web:51935ba6142acacf3b2bc3",
-    measurementId:"G-WDLSR8YTK4"
+    appId:"1:760089907322:web:51935ba6142acacf3b2bc3"
   };
   firebase.initializeApp(firebaseConfig);
+  firebase.firestore().enablePersistence({synchronizeTabs:true})
+    .catch(err=>console.warn('[Firestore] Persistence desativada:',err.code));
   const db=firebase.firestore();
 
-  /* -------- 2. HELPERS -------- */
-  const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]+/g,'').trim().replace(/\s+/g,'-');
-  const drinksByCat=c=>c==='Apresentador'?2:c==='Visitante'?1:0;
-  const toast=m=>{const t=document.getElementById('toast');t.textContent=m;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,3000)};
+  /* ---------- Helpers ---------- */
+  const $=q=>document.querySelector(q);
+  const slug=s=>s.toLowerCase().normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g,'')
+                  .replace(/[^a-z0-9 ]+/g,'')
+                  .trim()
+                  .replace(/\s+/g,'-');
+  const baseByCat=c=>c==='Apresentador'?2:c==='Visitante'?1:0;
+  const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000)};
+  const escapeHtml=str=>str.replace(/[&<>"']/g,tag=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#039;'}[tag]));
+  const debounce=(fn,delay)=>{let id;return(...args)=>{clearTimeout(id);id=setTimeout(()=>fn(...args),delay)}};
 
-  /* -------- 3. UI refs -------- */
-  const ui={
-   search:document.getElementById('search'),result:document.getElementById('searchResult'),btnNovo:document.getElementById('btnNovo'),
-   formCard:document.getElementById('formCard'),form:document.getElementById('form'),nome:document.getElementById('nome'),turma:document.getElementById('turma'),categoria:document.getElementById('categoria'),drinksInfo:document.getElementById('drinksInfo'),
-   acoesCard:document.getElementById('acoesCard'),infoSel:document.getElementById('infoSelecionado'),btnToken:document.getElementById('btnToken'),btnCracha:document.getElementById('btnCracha'),
-   logBody:document.querySelector('#log tbody'),drinkTotal:document.getElementById('drinkTotal'),btnCsv:document.getElementById('btnCsv')};
+  /* ---------- Turmas ---------- */
+  const TURMAS={
+    Infantil:["Yard 1","Yard 2","Garden 1","Garden 2","Garden 3","Garden 4","Fun 1","Fun 2","Fun 3","Fun 4","Kids 1","Kids 2","Kids 3","Kids 4","Teens On 1","Teens On 2","Teens On 3","Teens On 4","Teen Up 1","Teen Up 2"],
+    Adulto:["Basico 1","Basico 2","Intermediário 1","Intermediário 2","Pré-Avançado 1","Pré-Avançado 2","Avançado 1","Avançado 2","Platinum 1","Platinum 2"],
+    Espanhol:["En Contacto 1","En Contacto 2"]
+  };
 
-  ui.categoria.onchange=()=>ui.drinksInfo.textContent=drinksByCat(ui.categoria.value);
+  /* ---------- Mode (Recepção ou Bar) ---------- */
+  const isBar=location.search.includes('bar')||location.hash==='#bar';
+  $('#recepcaoSection').classList.toggle('hidden',isBar);
+  $('#barSection').classList.toggle('hidden',!isBar);
+  $('#drinkGlobal').classList.toggle('hidden',isBar);
+  $('#pageTitle').textContent=isBar?'BAR – Entrega de Drinks':'Controle de Passaportes';
 
-  let participanteSel=null; // guarda docId do participante em foco
+  isBar ? initBar() : initRecepcao();
 
-  /* -------- 4. BUSCA -------- */
-  ui.search.addEventListener('keyup',async e=>{
-    const q=slug(e.target.value);
-    ui.btnNovo.classList.add('hidden');ui.formCard.classList.add('hidden');ui.acoesCard.classList.add('hidden');participanteSel=null;
-    if(q.length<3){ui.result.textContent='';return;}
-    try{
-      const doc=await db.collection('pessoas').doc(q).get();
-      if(doc.exists){
-        const d=doc.data();participanteSel=q;
-        ui.result.innerHTML=`✅ <b>${d.nome}</b> – ${d.drinks} drinks ${d.token?'+ 2 token':''}`;
-        ui.infoSel.textContent=`Selecionado: ${d.nome} | Drinks: ${d.drinks} ${d.token?'(+token)':''}`;
-        ui.acoesCard.classList.remove('hidden');
-        ui.btnToken.textContent=d.token?'Token já adicionado':'Adicionar token 2 drinks (R$15)';
-      }else{
-        ui.result.textContent='🔎 Não encontrado.';
-        ui.btnNovo.classList.remove('hidden');
+  /* ========== RECEPÇÃO ========== */
+  function initRecepcao(){
+    const ui={
+      s:$('#search'), sug:$('#searchSug'), res:$('#searchResult'), novo:$('#btnNovo'),
+      formCard:$('#formCard'), form:$('#form'), nome:$('#nome'),
+      nivel:$('#nivel'), turma:$('#turma'), cat:$('#categoria'), baseSpan:$('#drinksBase'),
+      acoes:$('#acoesCard'), info:$('#infoSelecionado'),
+      addTok:$('#btnAddToken'), resumo:$('#resumoTokens'),
+      logBody:$('#log tbody'), totSpan:$('#drinkTotal')
+    };
+
+    /* Populate turmas when nível changes */
+    ui.nivel.onchange=()=>{
+      const lvl=ui.nivel.value;
+      ui.turma.innerHTML='<option value="">'+(lvl?'Selecione…':'Selecione o nível acima')+'</option>';
+      (TURMAS[lvl]||[]).forEach(t=>{
+        const o=document.createElement('option');o.value=o.textContent=t;ui.turma.appendChild(o);
+      });
+    };
+
+    ui.cat.onchange=()=>ui.baseSpan.textContent=baseByCat(ui.cat.value);
+    ui.s.focus();
+    let currentId=null;
+
+    /* ---- Busca + sugestões (com debounce) ---- */
+    ui.s.addEventListener('input',debounce(handleSearch,250));
+    ui.s.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ui.sug.classList.add('hidden');}});
+    ui.sug.onclick=e=>{if(e.target.tagName==='LI'){ui.s.value=e.target.textContent;handleSearch({target:{value:e.target.textContent}});ui.sug.classList.add('hidden');}};
+
+    async function handleSearch(e){
+      const term=e.target.value.trim();
+      const id=slug(term);
+      ui.sug.classList.add('hidden'); ui.sug.innerHTML='';
+      resetView(); currentId=null;
+      if(id.length<3)return;
+
+      /* sugestões (até 5) */
+      const list=await db.collection('pessoas')
+                         .orderBy(firebase.firestore.FieldPath.documentId())
+                         .startAt(id).endAt(id+'\uf8ff').limit(5).get();
+      if(!list.empty){
+        list.docs.forEach(d=>{const li=document.createElement('li');li.textContent=d.data().nome;ui.sug.appendChild(li);});
+        ui.sug.classList.remove('hidden');
       }
-    }catch(err){console.error(err);toast('Erro na busca')}
-  });
 
-  /* -------- 5. REGISTRAR NOVO -------- */
-  ui.btnNovo.onclick=()=>{
-    ui.formCard.classList.remove('hidden');
-    ui.nome.value=ui.search.value.trim();
-    ui.nome.focus();
-  }
-  ui.form.addEventListener('submit',async ev=>{
-    ev.preventDefault();
-    const nome=ui.nome.value.trim();if(!nome){toast('Preencha o nome');return;}
-    const id=slug(nome);const data={nome,turma:ui.turma.value.trim(),categoria:ui.categoria.value,drinks:drinksByCat(ui.categoria.value),token:false,timestamp:firebase.firestore.FieldValue.serverTimestamp()};
-    try{
+      /* dado principal */
+      const snap=await db.collection('pessoas').doc(id).get();
+      if(snap.exists){currentId=id; renderSelected(snap.data());}
+      else{ui.res.textContent='🔎 Não encontrado.'; ui.novo.classList.remove('hidden');}
+    }
+
+    function resetView(){ui.novo.classList.add('hidden');ui.formCard.classList.add('hidden');ui.acoes.classList.add('hidden');ui.res.textContent='';}
+
+    function renderSelected(d){
+      const base=d.drinksBase??baseByCat(d.categoria);
+      const tok=d.tokensComprados??0;
+      const total=base+tok*2;
+      ui.res.innerHTML=`✅ <b>${escapeHtml(d.nome)}</b> – Tokens: ${tok} • Total: ${total}`;
+      ui.info.textContent=`${d.nome} | Base ${base} | Tokens ${tok}`;
+      ui.resumo.textContent=`Total permitido: ${total}`;
+      ui.acoes.classList.remove('hidden');
+    }
+
+    /* ---- Novo ---- */
+    ui.novo.onclick=()=>{ui.formCard.classList.remove('hidden');ui.nome.value=ui.s.value.trim();ui.nome.focus();};
+    ui.form.onsubmit=async ev=>{
+      ev.preventDefault();
+      const nome=ui.nome.value.trim();
+      if(!nome){toast('Preencha nome');return;}
+      if(nome.length>80){toast('Nome muito longo');return;}
+      let baseId=slug(nome);
+      let id=baseId;let suffix=2;
+      while((await db.collection('pessoas').doc(id).get()).exists){id=`${baseId}-${suffix++}`;}
+      const data={
+        nome,
+        turma:ui.turma.value||'',
+        categoria:ui.cat.value,
+        drinksBase:baseByCat(ui.cat.value), tokensComprados:0, drinksConsumidos:0,
+        timestamp:firebase.firestore.FieldValue.serverTimestamp()
+      };
       await db.collection('pessoas').doc(id).set(data,{merge:true});
       toast('Salvo!');
-      ui.form.reset();ui.formCard.classList.add('hidden');ui.search.value='';ui.result.textContent='';renderLog();
-    }catch(err){console.error(err);toast('Erro ao salvar')}
-  });
+      ui.form.reset();
+      ui.turma.innerHTML='<option value="">Selecione o nível acima</option>';
+      resetView(); ui.s.value=''; ui.s.focus(); renderLog();
+    };
 
-  /* -------- 6. AÇÕES: TOKEN & CRACHÁ -------- */
-  ui.btnToken.onclick=async()=>{
-    if(!participanteSel)return;
-    try{
-      const ref=db.collection('pessoas').doc(participanteSel);const snap=await ref.get();const d=snap.data();
-      if(d.token){toast('Token já registrado');return;}
-      await ref.update({token:true});toast('Token adicionado!');ui.btnToken.textContent='Token já adicionado';renderLog();
-    }catch(err){console.error(err);toast('Erro ao adicionar token')}
-  }
-  ui.btnCracha.onclick=async()=>{
-    if(!participanteSel)return;const snap=await db.collection('pessoas').doc(participanteSel).get();const d=snap.data();
-    const w=window.open('','_blank','width=300,height=200');w.document.write(`<style>@media print{@page{size:credit-card}}</style><h2 style="font-family:Poppins">${d.nome}</h2><p>${d.categoria} – ${d.drinks} drinks${d.token?'+token':''}</p>`);w.print();w.close();
-  }
+    /* ---- Token ---- */
+    ui.addTok.onclick=async ()=>{
+      if(!currentId)return;
+      ui.addTok.disabled=true; setTimeout(()=>ui.addTok.disabled=false,600);
+      await db.collection('pessoas').doc(currentId)
+               .update({tokensComprados:firebase.firestore.FieldValue.increment(1)});
+      toast('+2 drinks'); ui.s.dispatchEvent(new Event('input')); renderLog();
+    };
 
-  /* -------- 7. LOG & DRINK COUNTER -------- */
-  async function renderLog(){
-    try{
+    /* ---- Log (últimos 10) ---- */
+    async function renderLog(){
       const snap=await db.collection('pessoas').orderBy('timestamp','desc').limit(10).get();
-      ui.logBody.innerHTML=snap.docs.map(d=>{const v=d.data();return `<tr><td>${v.nome}</td><td>${v.categoria[0]}</td><td>${v.drinks}</td><td>${v.token?'✔️':''}</td></tr>`}).join('');
-      // total
-      const all=await db.collection('pessoas').get();let total=0;all.forEach(doc=>{const v=doc.data();total+=v.drinks+(v.token?2:0)});ui.drinkTotal.textContent=total;
-    }catch(err){console.error(err);toast('Erro log')}
-  }
-  renderLog();
+      ui.logBody.innerHTML='';
+      snap.docs.forEach(d=>{
+        const v=d.data();
+        const base=v.drinksBase??baseByCat(v.categoria);
+        const tok=v.tokensComprados??0;
+        const tot=base+tok*2;
+        const tr=document.createElement('tr');
+        [v.nome,v.categoria[0],base,tok,tot].forEach(val=>{
+          const td=document.createElement('td');td.textContent=val;tr.appendChild(td);
+        });
+        ui.logBody.appendChild(tr);
+      });
 
-  /* -------- 8. EXPORTA CSV -------- */
-  ui.btnCsv.onclick=async()=>{
-    try{
-      const snap=await db.collection('pessoas').get();let csv='Nome,Turma,Categoria,Drinks,Token\n';
-      snap.forEach(doc=>{const v=doc.data();csv+=`${v.nome},${v.turma},${v.categoria},${v.drinks},${v.token}\n`});
-      const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.download='passaportes.csv';a.click();URL.revokeObjectURL(url);
-    }catch(err){console.error(err);toast('Erro CSV')}
+      /* total global (campos mínimos) */
+      const all=await db.collection('pessoas').select('categoria','drinksBase','tokensComprados').get();
+      let total=0;
+      all.forEach(doc=>{
+        const v=doc.data();
+        total+=(v.drinksBase??baseByCat(v.categoria))+(v.tokensComprados??0)*2;
+      });
+      ui.totSpan.textContent=total;
+    }
+    renderLog();
+  }
+
+  /* ========== BAR ========== */
+  function initBar(){
+    const ui={s:$('#barSearch'), sug:$('#barSug'),info:$('#barInfo'),serve:$('#btnServe'),undo:$('#btnUndo')};
+    ui.s.focus();
+    let selId=null, clickLock=0;
+
+    ui.s.addEventListener('input',debounce(barSearch,250));
+    ui.sug.onclick=e=>{if(e.target.tagName==='LI'){ui.s.value=e.target.textContent;barSearch({target:{value:e.target.textContent}});ui.sug.classList.add('hidden');}};
+
+    async function barSearch(e){
+      const term=e.target.value.trim();
+      const id=slug(term);
+      ui.sug.classList.add('hidden'); ui.sug.innerHTML='';
+      ui.info.textContent=''; selId=null;
+      ui.serve.classList.add('hidden'); ui.undo.classList.add('hidden');
+      if(id.length<3)return;
+
+      const list=await db.collection('pessoas')
+                         .orderBy(firebase.firestore.FieldPath.documentId())
+                         .startAt(id).endAt(id+'\uf8ff').limit(5).get();
+      if(!list.empty){
+        list.docs.forEach(d=>{const li=document.createElement('li');li.textContent=d.data().nome;ui.sug.appendChild(li);});
+        ui.sug.classList.remove('hidden');
+      }
+
+      const snap=await db.collection('pessoas').doc(id).get();
+      if(snap.exists){selId=id; renderBar(snap.data());}
+      else ui.info.textContent='❌ Não achado';
+    }
+
+    function renderBar(d){
+      const base=d.drinksBase??baseByCat(d.categoria);
+      const tok=d.tokensComprados??0;
+      const tot=base+tok*2;
+      const cons=d.drinksConsumidos||0;
+      const rest=tot-cons;
+      ui.info.textContent=`${d.nome} • Restantes: ${rest}`;
+      ui.info.className=rest===0?'rest-0':rest===1?'rest-1':'';
+      ui.serve.disabled=rest===0;
+      ui.serve.classList.remove('hidden'); ui.undo.classList.remove('hidden');
+    }
+
+    async function change(delta){
+      if(!selId||clickLock)return;
+      clickLock=1; setTimeout(()=>clickLock=0,650);
+      const ref=db.collection('pessoas').doc(selId);
+      await db.runTransaction(async tr=>{
+        const snap=await tr.get(ref); if(!snap.exists)return;
+        const v=snap.data();
+        const base=v.drinksBase??baseByCat(v.categoria);
+        const tok=v.tokensComprados??0;
+        const tot=base+tok*2;
+        let cons=v.drinksConsumidos||0;
+        cons=Math.max(0,Math.min(tot,cons+delta));
+        tr.update(ref,{drinksConsumidos:cons});
+      });
+      const snap=await ref.get(); renderBar(snap.data());
+      toast(delta===1?'-1 servido':'↩ +1 desfaz');
+      if(delta===1){ui.s.value=''; ui.s.focus();}
+    }
+    ui.serve.onclick=()=>change(1);
+    ui.undo.onclick=()=>change(-1);
   }
   </script>
+
+  <!-- Dica de segurança: defina REGRAS do Firestore para restringir escrita anônima. -->
 </body>
 </html>
