@@ -106,8 +106,37 @@
   let participanteSel=null; // guarda docId do participante em foco
 
   /* -------- 4. BUSCA -------- */
-  ui.search.addEventListener('keyup',async e=>{
-    const q=slug(e.target.value);
+  ui.search.addEventListener('keyup', async e => {
+    const q = slug(e.target.value);
+    // Reseta UI
+    ui.btnNovo.classList.add('hidden');
+    ui.formCard.classList.add('hidden');
+    ui.acoesCard.classList.add('hidden');
+    participanteSel = null;
+
+    if (q.length < 3) { ui.result.textContent = ''; return; }
+
+    try {
+      const doc = await db.collection('pessoas').doc(q).get();
+      if (doc.exists) {
+        const d = doc.data();
+        participanteSel = q;
+        ui.result.innerHTML = `✅ <b>${d.nome}</b> – ${d.drinks} drinks ${d.token ? '+ 2 token' : ''}`;
+        ui.infoSel.textContent = `Selecionado: ${d.nome} | Drinks: ${d.drinks} ${d.token ? '(+token)' : ''}`;
+        ui.acoesCard.classList.remove('hidden');
+        ui.btnToken.textContent = d.token ? 'Token já adicionado' : 'Adicionar token 2 drinks (R$15)';
+      } else {
+        ui.result.textContent = '🔎 Não encontrado.';
+        ui.btnNovo.classList.remove('hidden');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Erro na busca: ' + (err.code || err.message));
+      // Mesmo com erro de rede / permissão, permita cadastrar manualmente
+      ui.result.textContent = '⚠️ Erro ao consultar. Você ainda pode registrar novo participante.';
+      ui.btnNovo.classList.remove('hidden');
+    }
+  });
     ui.btnNovo.classList.add('hidden');ui.formCard.classList.add('hidden');ui.acoesCard.classList.add('hidden');participanteSel=null;
     if(q.length<3){ui.result.textContent='';return;}
     try{
